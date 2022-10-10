@@ -33,4 +33,33 @@ class textProcess():
 
 class _settings:
     information = True
-    handShow = True
+    handShow = False
+    isFlipMode = True
+    informationText ="None"
+    fingerCode = -1
+    fingerStringList = ""
+
+class dataSender:
+    imgData = []
+    textList = []
+    senderFinish =False
+
+class textProcess:
+    def putText(img,text,x,y):
+        ##########
+        ##yazı yazmak için gerekli paremetreler
+        # font
+        textFont = cv2.FONT_HERSHEY_SIMPLEX
+        textOrg = (x, y)
+        
+        # fontScale
+        fontScale = 1
+        
+        # Blue color in BGR
+        textColor = (255, 0, 0)
+        
+        # Line thickness of 2 px
+        textThickness = 2
+        #######
+        img = cv2.putText(img, text, textOrg, textFont, 
+                   fontScale, textColor, textThickness, cv2.LINE_AA)

@@ -1,10 +1,15 @@
 import cv2
 import mainmenu as main
 import drawMenu
+import menutestmenu
+import settingsMenu
+import detectObjectMenu
+import ocrProcessMenu
 import menuTools as mt
+import time
 class menus():
     def __init__(self):#constructor
-        self.currentMenuNo = 0
+        self.currentMenuNo = 5
         self.tabMenuWidth= 1280
         self.img = 0
         self.overlay = 0
@@ -14,21 +19,53 @@ class menus():
         self.clickColor = (255,0,0)
 
 
-        self.drawMenu = drawMenu.DrawMenu(self) 
-        self.mainMenu = main.MainMenu(self)
-        self.currentMenu = self.mainMenu
+        self.mainMenu = main.MainMenu(self) #0
+        self.settingsMenu = settingsMenu.SettingsMenu(self) #1
+        self.menutestMenu= menutestmenu.MenuTestMenu(self) #2
+        self.drawMenu = drawMenu.DrawMenu(self) #3
+        self.detectObjectMenu = detectObjectMenu.DetectObjectMenu(self)#4
+        self.ocrProcessMenu = ocrProcessMenu.OcrProcessMenu(self) #5
+        self.changeCurrentMenu(self.currentMenuNo)
+        self.lastTime =time.perf_counter()
+
 
     def changeCurrentMenu(self,code):
+        self.lastIndex = -1
         if code == 0:
             self.currentMenuNo=0
             self.currentMenu = self.mainMenu
         elif code == 1:
-            self.currentMenuNo=0
+            self.currentMenuNo=1
+            self.currentMenu = self.settingsMenu
+            self.currentMenu.firstOpen()
+        elif code == 2:
+            self.currentMenuNo=2
+            self.currentMenu = self.menutestMenu
+        elif code == 3:
+            self.currentMenuNo=3
             self.currentMenu = self.drawMenu
+            self.currentMenu.firstOpen()
+        elif code == 4:
+            self.currentMenuNo=4
+            self.currentMenu = self.detectObjectMenu
+            self.currentMenu.firstOpen()
+        elif code == 5:
+            self.currentMenuNo=5
+            self.currentMenu = self.ocrProcessMenu
+            self.currentMenu.firstOpen()
         else:
             self.currentMenuNo=0
             self.currentMenu = self.mainMenu
 
+    def getxyCordinat(self):
+        x1, y1 = self.lmList[8][1:]
+        #x2, y2 = self.lmList[7][1:]
+        #d = (x2-x1)/4
+        d=8
+        x1 = x1 -d
+        y1 = y1 -d
+
+        return x1,y1
     def cursorModeForMenu(self):
         x1, y1 = self.lmList[8][1:]
         #x2, y2 = self.lmList[7][1:]
@@ -49,6 +86,9 @@ class menus():
                 if index !=self.lastIndex:
                     self.changeLastIndex()
                 self.lastIndex=index
+        else:
+            self.changeLastIndex()
+            self.lastIndex = -1
                 
 
     def changeLastIndex(self):
@@ -58,7 +98,11 @@ class menus():
     def clickaMenu(self):
         if self.clickControl:
             if self.lastIndex>=0:
-                self.currentMenu.clickaMenu(self.lastIndex)
+                newTime = time.perf_counter()
+                totalTime = newTime - self.lastTime
+                if totalTime>0.25:
+                    self.lastTime=newTime
+                    self.currentMenu.clickaMenu(self.lastIndex)
 
     def fingerPress(self,key):
         if key == 2 or key ==6:
@@ -67,7 +111,7 @@ class menus():
         else:
             self.changeLastIndex()
             self.lastIndex = -1
-        if key == 3:
+        if key == 3 or key == 7:
             self.cursorModeForMenu()
             self.clickaMenu()
             self.clickControl = False
@@ -125,7 +169,7 @@ class menus():
             item.menuList[i].bgColor = item.menuBackColor
 
             x+=cw
-            if x+cw> self.tabMenuWidth:
+            if x+cw > self.tabMenuWidth and i+1 != cc:
                 if(y==0):
                     item.maxMenuWidth=x
                 x=0
@@ -133,8 +177,11 @@ class menus():
                 isMultiLine = True
         item.maxMenuHeight = y+ch
         if not isMultiLine:
+            item.maxMenuHeight = ch
             item.maxMenuWidth = x
-        #print(item.maxMenuWidth,item.maxMenuHeight)
+        # print(ch,cw,cc)
+        # print(isMultiLine)
+        # print(item.maxMenuWidth,item.maxMenuHeight)
             #print(item.menuList[i].no,item.menuList[i].x,item.menuList[i].y)
 
     def calculateMenuTextForaItem(self,newText):
